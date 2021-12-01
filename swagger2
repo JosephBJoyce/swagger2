@@ -1,0 +1,3630 @@
+swagger: '2.0'
+info:
+  version: '4.1'
+  title: Virta Partner API v 4.1 - Admin
+  description: Virta API documentation Virta Partner API documentation
+host: api.virta.global
+basePath: /admin
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  Authorization:
+    name: Authorization
+    type: apiKey
+    in: header
+  x-api-key:
+    name: x-api-key
+    type: apiKey
+    in: header
+paths:
+  /auth:
+    post:
+      operationId: POST_auth
+      tags:
+        - Authentication
+      description: >-
+        The Auth endpoint is used to authenticate admin users with the system to
+        ensure in their identity. The Auth endpoint issues an unique expiring
+        JWT token to verify the identity for future API requests.
+
+
+        The token expires within 1 day. Use
+        [auth/refresh](#endpoint:t8yvtPMNzHRKvn6gm) or /auth to refresh the
+        token.
+      parameters:
+        - name: body
+          in: body
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+            required:
+              - username
+              - password
+            example:
+              username: user
+              password: mypassword
+        - name: x-api-key
+          in: header
+          description: Your private API key
+          required: true
+          type: string
+        - name: Content-Type
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: >-
+                  API Key (token) to use in those endpoints requiring **API
+                  Key** authentication
+              access_token:
+                type: string
+                description: >-
+                  API Key (token) to use in those endpoints requiring **API
+                  Key** authentication
+              token_type:
+                type: string
+                description: Type of authentication token
+              expires_in:
+                type: integer
+                description: Expiry time of the token in **seconds**
+            required:
+              - token
+          examples:
+            application/json:
+              token: >-
+                eyJ0eXAiOiJKV1EReeGciOiJIUzI1NiJ9.eyJpYXQiOjE1ODc3MjgwNzEsImp0aSI6IjZ0UTNUUXNSVkZmY2x2OUYiLCJpc3MiOiJhcGkudmlydGEtZXYuY29tIiwiZXhwIjoxNTg3ODE0NDcxLCJzdWIiOjYxMywiaHN1IjoiMmI0Y2Y0MDVjMzZkMmFiNThmNjg0ZDFjYjg4MzJmNDU5YWVmNTVkYiJ9.rA3o8-vwCUpFdrDPubv7WCJjyAGjE9qT17XlDIoC0fc
+              access_token: >-
+                eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1ODc3MjgwNzEsImp0aSI6IjZ0UTNUUXNSVkZmY2x2OUYiLCJpc3MiOiJhcGkudmlydGEtZXYuY29tIiwiZXhwIjoxNTg3ODE0NDcxLCJzdWIiOjYxMywiaHN1IjoiMmI0Y2Y0MDVjMzZkMmFiNThmNjg0ZDFjYjg4MzJmNDU5YWVmNTVkYiJ9.rA3o8-vwCUpFdrDPubv7WCJjyAGjE9qT17XlDIoC0fc
+              token_type: bearer
+              expires_in: 86400
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+          examples:
+            application/json:
+              status_code: 401
+              message: >-
+                Your account is locked because of too many failed login
+                attempts. Please contact support@virta.fi to get your account
+                opened.
+        '403':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: API key is not valid
+          examples:
+            application/json:
+              message: Forbidden
+        '422':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              validation:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      username:
+                        type: array
+                        items:
+                          type: string
+                      password:
+                        type: array
+                        items:
+                          type: string
+              error_code:
+                type: integer
+          examples:
+            application/json:
+              status_code: 422
+              validation:
+                errors:
+                  username:
+                    - The username field is required.
+                  password:
+                    - The password field is required.
+              error_code: 0
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+  /auth/refresh:
+    get:
+      operationId: GET_auth-refresh
+      tags:
+        - Authentication
+      description: >-
+        Refresh the current token to retrieve new valid admin user's token. This
+        endpoint is used when the token is expired but still within valid
+        refresh period.
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 'TODO: document this'
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: >-
+                  API Key (token) to use in those endpoints requiring **API
+                  Key** authentication
+            required:
+              - token
+        '401':
+          description: ''
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+  /customers/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+    get:
+      operationId: GET_customers-id
+      tags:
+        - Integrate external CRM
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/response'
+        '403':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Forbidden
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+        '500':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Internal server error
+      security:
+        - Authorization: []
+        - x-api-key: []
+    patch:
+      operationId: PATCH_customers-id
+      tags:
+        - Integrate external CRM
+      description: >-
+        None of the fields in the request are required.
+
+
+        Note: do not include unnecessary fields inside the request body.
+
+        For example, if customer mobile needs to be changed, the following
+        request would suffice:
+
+
+        ```
+
+        {
+          "mobile": "+3584422233366"
+        }
+
+        ```
+
+
+        Permissions needed: View customers
+      parameters:
+        - name: body
+          in: body
+          schema:
+            allOf:
+              - $ref: '#/definitions/request'
+            example:
+              sellerId: -92806999
+              bill_type: prepaid
+              address: magna ipsum
+              city: non qui
+              zip: amet cillum
+              mobile: + 46120096361
+              email: tijc@LIWryHpdOHdfdsSNxoQBWjEZWXUti.ut
+              language: en
+              sendWelcomeEmail: false
+              sendSmsCode: false
+              sendRfid: false
+              privateCpos:
+                - -91585172
+                - -42687798
+                - 11566409
+                - -35839775
+                - -67377628
+              enableTopups: false
+              firstname: ullamco
+              lastname: 'adipisicing dolore '
+              paymentToken: ea
+              paymentType: aliquip eiusmod dolore qui
+              disabled: false
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+        - name: Content-Type
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 'TODO: document this'
+          schema:
+            $ref: '#/definitions/response'
+          examples:
+            application/json:
+              id: 24544
+              name: ex
+              company: ''
+              mobile: 98765243212345
+              email: ab2wp5bKciY5DS@TYVqLAAdXdcoDHlhCOKeOZZwAH.ckhd
+              address:
+                street: ut ad
+                zip_city: nostrud an incididunt nisi ipsum proident amet
+                country: in con
+              billing:
+                billable: false
+                balance: '0.00'
+                currency: EUR
+                card: null
+              group: null
+              home_station: null
+              meta:
+                disabled: false
+                newsletter: true
+                failed_login_attempts: 0
+                is_group_admin: false
+                created_at: '2018-02-20 16:08:02'
+                last_modified: '-0001-11-30 00:00:00'
+                links:
+                  my_page: >-
+                    https://customer.virta.fi?action=login&token=%A63%FB%00%DA%0CacU%ECP%9D%E7K%CB%0A%CD%BA%E9%2B%F3Y%A4z%2C%7B%0F%13R%40P%C7
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+          examples:
+            application/json:
+              status_code: 400
+              message: token_not_provided
+        '422':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              validation:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+          examples:
+            application/json:
+              status_code: 422
+              validation:
+                errors:
+                  - The seller id field is required.
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+  /customers:
+    get:
+      operationId: GET_customers
+      tags:
+        - Integrate external CRM
+      description: |-
+        Retrieve all customers belong to your EMP and sub-sellers
+
+        Permissions needed: View customers
+      parameters:
+        - name: includeAll
+          in: query
+          description: >-
+            1 = return all fields in the result set. 0 = return only required
+            fields in the result set.
+          type: boolean
+        - name: page
+          in: query
+          description: returns as default page 1
+          type: integer
+        - name: perPage
+          in: query
+          type: integer
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              allOf:
+                - $ref: '#/definitions/response'
+          examples:
+            application/json:
+              - id: 77
+                sellerId: 1
+                wantRecharge: false
+                mobile: '+35866559923201'
+                email: hello@hello.tjz
+                language: en
+                wantHardware: false
+                nameFirst: david01
+                nameLast: lallalum
+                company: private co
+                products: 'sed labore '
+                freeSellers: ''
+                address:
+                  street: Hi Street 1
+                  additional: line2
+                  city: Vienna
+                  zipcode: '0010'
+                  country: Austria
+                  more_details: EEEEEE
+                privateCpos: []
+                paymentType: none
+                disabled: false
+                customFieldInformation: in labore Duis elit dolore
+                homeStation: {}
+                billable: false
+                draft: false
+                wantReminder: true
+                wantServiceNotifications: false
+                wantAdvertisingNotifications: false
+                smsEnabled: true
+                brand: ''
+                newsletter: false
+                monthlyReceipt: false
+              - id: 78
+                sellerId: 1
+                wantRecharge: false
+                mobile: '+35859923201'
+                email: hello2@hello.tjz
+                language: en
+                wantHardware: false
+                nameFirst: david01
+                nameLast: lallalum
+                company: private co
+                products: 'sed labore '
+                freeSellers: ''
+                address:
+                  street: Hi Street 1
+                  additional: line2
+                  city: Vienna
+                  zipcode: '0010'
+                  country: Austria
+                  more_details: EEEEEE
+                privateCpos: []
+                paymentType: none
+                disabled: false
+                customFieldInformation: in labore Duis elit dolore
+                homeStation: {}
+                billable: false
+                draft: false
+                wantReminder: true
+                wantServiceNotifications: false
+                wantAdvertisingNotifications: false
+                smsEnabled: true
+                brand: ''
+                newsletter: false
+                monthlyReceipt: false
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+          examples:
+            application/json:
+              status_code: 400
+              message: token_not_provided
+        '422':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              validation:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+          examples:
+            application/json:
+              status_code: 422
+              validation:
+                errors:
+                  - The seller id field is required.
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+    post:
+      operationId: POST_customers
+      tags:
+        - Integrate external CRM
+      description: >-
+        Create a new customer associating with your EMP.
+
+
+        Please note our access restrictions:
+
+
+        - Customers can only be added to sellers your admin user account has
+        access to.
+
+        - Customers can only be added to private CPOs your admin user account
+        has access to.
+
+
+        Permissions needed: View customers
+      parameters:
+        - name: body
+          in: body
+          schema:
+            allOf:
+              - $ref: '#/definitions/request'
+            example:
+              sellerId: 93028106
+              wantRecharge: true
+              mobile: '+63262575924'
+              email: abc@def.com
+              language: en
+              nameFirst: occaecat consectetur
+              nameLast: dolore amet reprehenderit voluptate ullamco
+              company: private co
+              wantHardware: false
+              freeSellers: fugiat Excepteur dolor ut pariatur
+              products: commodo ullamco
+              address:
+                street: cupidatat consectetur
+                additional: line2
+                city: commodo
+                zipcode: '22222'
+                country: deserunt sunt Duis Ut
+                more_details: enim incididunt amet
+              privateCpos:
+                - 123
+                - 345
+              disabled: false
+              customFieldInformation: anim
+              billable: true
+              draft: false
+              wantReminder: true
+              wantServiceNotifications: false
+              wantAdvertisingNotifications: false
+              smsEnabled: false
+              brand: proident sint dolore
+              newsletter: true
+              monthlyReceipt: false
+              skipWelcomeEmail: true
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+        - name: Content-Type
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 'TODO: document this'
+          schema:
+            $ref: '#/definitions/response'
+          examples:
+            application/json:
+              id: 775599
+              sellerId: 562141
+              wantRecharge: false
+              mobile: '+35866559901'
+              email: sXfLDwU93UM01@LTKML.tjz
+              language: en
+              wantHardware: false
+              nameFirst: david01
+              nameLast: lallalum
+              products: 'sed labore '
+              freeSellers: ''
+              address:
+                street: adipisicing minim deserunt
+                city: nostrud quis occaecat nulla Lorem
+                country: proident
+                more_details: EEEEEE
+              privateCpos: []
+              paymentType: none
+              disabled: false
+              customFieldInformation: in labore Duis elit dolore
+              homeStation: {}
+              billable: false
+              draft: false
+              wantReminder: true
+              wantServiceNotifications: false
+              wantAdvertisingNotifications: false
+              smsEnabled: true
+              brand: ''
+              newsletter: false
+              monthlyReceipt: false
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+          examples:
+            application/json:
+              status_code: 400
+              message: token_not_provided
+        '422':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              validation:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+          examples:
+            application/json:
+              status_code: 422
+              validation:
+                errors:
+                  - The seller id field is required.
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+  /customers/{id}/billing/refund:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+    post:
+      operationId: POST_admin-refund
+      tags:
+        - Integrate external invoicing system
+      description: >-
+        This API can be used to refund EV drivers.
+
+
+        Refunds are only allowed for customers with the billing type "prepaid"
+        or "postpaid".
+
+
+        Please note that all refunds will be billed to the EMP of the customer.
+
+
+        Required information:
+
+
+        - customer_ID
+
+        - description
+
+        - amount (in cents of the currency of the EMP of the EV driver) eg.
+        amount 3000 = EUR 30,-
+      parameters:
+        - name: body
+          in: body
+          schema:
+            type: object
+            properties:
+              amount:
+                type: integer
+                description: Amount in cents to be refunded to the EV driver
+              description:
+                type: string
+                description: Description why the amount has been refunded to the EV driver
+            required:
+              - amount
+              - description
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              uuid:
+                type: string
+                format: uuid
+              customerId:
+                type: integer
+                minimum: 1
+              amount:
+                type: integer
+                minimum: 0
+              currency:
+                type: string
+                minLength: 3
+                maxLength: 3
+              transactionType:
+                type: string
+              created:
+                type: string
+                format: date-time
+              customerGroupId:
+                type: integer
+                minimum: 1
+              customerGroupName:
+                type: string
+              organizationId:
+                type: integer
+                minimum: 1
+              paymentType:
+                type: string
+              station:
+                type: array
+                items: {}
+          examples:
+            application/json:
+              uuid: badf6982-ac28-4d6f-b96e-6da5008cebcd
+              customerId: 49073498
+              amount: 2000
+              currency: EUR
+              transactionType: refund
+              created: '2021-06-26T06:22:17.386Z'
+              customerGroupId: 30143171
+              customerGroupName: sed tempor
+              organizationId: 35649368
+              paymentType: Postpaid
+        '403':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+              error_code:
+                type: integer
+          examples:
+            application/json:
+              status_code: 403
+              message: Cannot issue refund to postpaid by card customers
+              error_code: 0
+        '404':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+              error_code:
+                type: integer
+          examples:
+            application/json:
+              status_code: 404
+              message: customer does not exist
+              error_code: 0
+        '422':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              validation:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+          examples:
+            application/json:
+              status_code: 422
+              validation:
+                errors:
+                  - amount must be an integer
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+  /emp/transactions:
+    get:
+      operationId: GET_emp-transactions
+      tags:
+        - Integrate external invoicing system
+      description: >-
+        Retrieve all transactions of your customers within specific period.
+        There are different types of transactions:
+
+
+        - **charge:** when a customer makes a charge at a charging station.
+
+        - **reservation:** when a customer makes a reservation for a charging
+        station.
+
+        - **load:** when a customer loads prepaid balance to his account from a
+        credit card
+
+        - **other:**
+          - **refund:** when an admin user makes a refund to a customer's balance.
+          - **monthly:** when a customer pays for his monthly product or is invoiced monthly minimum service fee
+          - **transition:** when a customer is transitioned from prepaid to postpaid by card a transition transaction is created
+          - **seller_collection:** when a postpaid by card customer is invoiced by the EMP directly a seller collection transaction is created
+
+        **Transaction handling:**
+
+
+        *immutability*
+
+
+        Transactions are created at the time our system receives all necessary
+        data from the charging station.
+
+
+        When retrieving transactions within a certain timeframe (from - to in
+        the query string) the response is immutable. No new transactions will be
+        added to any dataset in the past.
+
+
+        *charge corrections*
+
+
+        Given a transaction is invalid, a counter transaction will be created
+        and returned with the created date when the change occured.
+
+
+        *invoice amounts*
+
+
+        They amount that should be invoiced from the EV Driver is returned as
+        negative integer in the amount field.
+
+
+        If the amount is positive it should be credited to the EV Driver (eg.
+        refunds or charge corrections).
+
+
+        *date filtering*
+
+
+        **from** and **to** query parameter examples:
+
+
+        - ?from=2018-04-03T12:10:00Z&to=2018-04-09T15:10:00Z
+
+        - ?from=2018-04-03T12:10:00%2B0500&to=2018-04-09T15:10:00%2B0500
+
+
+
+        Permissions needed: View customers or View EMP reports
+      parameters:
+        - name: from
+          in: query
+          description: >-
+            Retrieve all the charges after this *created* timestamp. Default to
+            UTC time 0 (1970-01-01T00:00:00+00:00) if not defined
+          type: string
+          format: date-time
+        - name: to
+          in: query
+          description: >-
+            Retrieve all the charges before this *created* timestamp. Default to
+            current time if not defined
+          type: string
+          format: date-time
+        - name: roaming
+          in: query
+          description: Retrieve only roaming transctions
+          type: integer
+        - name: rfid
+          in: query
+          description: Retrieve transctions by RFID
+          type: string
+        - name: organizationId
+          in: query
+          description: Retrieve transctions by organization ID
+          type: integer
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+        - $ref: '#/parameters/trait:pagination:page'
+        - $ref: '#/parameters/trait:pagination:perPage'
+        - $ref: '#/parameters/trait:pagination:X-Total-Count'
+        - $ref: '#/parameters/trait:pagination:link'
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              oneOf:
+                - $ref: '#/definitions/transactionCharge'
+                - $ref: '#/definitions/transactionReserve'
+                - $ref: '#/definitions/transactionLoad'
+                - $ref: '#/definitions/transactionOthers'
+          examples:
+            application/json:
+              - uuid: 5a7de520-59ce-4668-b925-ee88d5312b62
+                customerId: 13096134
+                amount: -70085727
+                currency: EUR
+                transactionType: charge
+                created: '2545-09-11T10:38:55.908Z'
+                customerGroupId: 38774053
+                customerGroupName: deserunt
+                organizationId: 1401758
+                paymentType: Prepaid
+                startTime: '2020-04-20T13:52:57+03:00'
+                stopTime: '2020-04-20T15:52:58+03:00'
+                signedMeterValueBegin: >-
+                  AP;0;3;AMMZ566VVHO23IDLJSWDPNE6F5DQ5QY32GAIJGYAAAABA232ISABC5GRF4AIAAEEAB7Y6AAJROAQAAAAAAABQGRDEMQZXIJAUKMBVIM4DAAAAAAAAAAAYAAAAALYAAAAA====;ZCZOVWEMRUOLCYI53LNLHXDHZD4VIO3FJ5YVTSIT7GPVNKTM2YN6MPRCZSWDI2HRTS5O6MHNNCWUA===;
+                signedMeterValueEnd: >-
+                  AP;1;3;AMMZ566VVHO23IDLJSWDPNE6F5DQ5QY32Q6OYYDCNQAAAFACRC2I4ADGAIJGYAAAAAQ4UDIUABQ7ORF4AIAAEEAB7Y6ADMCYAQAAAAAAABQGRDEMQZXIJAUKMBVIM4DAAAAAAAAAAAYAAAAAMAAAAAA====;HN5NMNDVWKSTU7Y3I3IPKBKN3D7I52BOR3NPR2RSPRFIWEJPDGD5LYY4XG7CPZJN6ZV5BNVZTXMZE===;
+                duration: 121
+                wattHour: 1000
+                stationUuid: 2088eb3b-04b7-4b7d-89b3-37721a3ee974
+                rfid: 0420A14A
+                empShare: 70085727
+                evseId: 56197546
+                plugType: AC
+                cdrId: 22039210
+                operatorPrice: 30670123
+                operatorCurrency: EUR
+                operatorId: 78655333
+                freeCharging: 'No'
+                fullEvseId: FI*001*E56197546
+                cpoOperatorId: FI*001
+                meterStart: 1000
+                meterStop: 2000
+                eichrechtType: SAFE
+                station:
+                  identity: FI_ChARGE_ME
+                  name: Hi charger
+                  location:
+                    id: 56197546
+                    address: Hi Street 2
+                    city: Helsinki
+                    coordinates:
+                      lat: 60.66868
+                      lng: 12.54339
+                  locationType: Public
+              - uuid: 2ee39334-2757-4467-93af-403ce18c4659
+                stationUuid: d5cb9fc4-e023-4506-a1b4-b39bb5361cd0
+                customerId: 92035001
+                amount: 35319650
+                currency: EUR
+                transactionType: reserve
+                created: '2980-01-24T13:00:41.503Z'
+              - uuid: c4db6f5a-841f-4d6a-9e34-d1850ae25779
+                stationUuid: e968c656-6c5d-4b4a-8ce9-a03ad647df17
+                customerId: 82512383
+                amount: 62336630
+                currency: EUR
+                transactionType: monthly
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+          examples:
+            application/json:
+              status_code: 401
+              message: token_not_provided
+        '422':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              validation:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+          examples:
+            application/json:
+              status_code: 422
+              validation:
+                errors:
+                  - The to is not a valid date.
+                  - The to must be a date after from.
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+  /sellers/list:
+    get:
+      operationId: GET_sellers-list
+      tags:
+        - Statistics and data analysis
+      description: >-
+        Returns a list of your sub-organisations. Add mode "full" in the query
+        string for organisation details. 
+
+
+        Permissions needed: View CPO info
+      parameters:
+        - name: include
+          in: query
+          required: false
+          type: string
+          enum:
+            - children
+            - none
+            - null
+        - name: mode
+          in: query
+          required: false
+          type: string
+          enum:
+            - hierarchy
+            - full
+            - null
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 'TODO: document this'
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              parent_id:
+                type: integer
+              name:
+                type: string
+              country:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  name:
+                    type: string
+                  created_at:
+                    type: string
+                  updated_at:
+                    type: string
+                  iso3:
+                    type: string
+                  otp_in_app_enabled:
+                    type: integer
+                  dial_code:
+                    type: string
+              language:
+                type: string
+              currency:
+                type: string
+              maintenance_contact:
+                type: string
+              sms_number:
+                type: string
+              support:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  phone:
+                    type: string
+              pricing:
+                type: object
+                properties:
+                  payment_margin_percent:
+                    type: integer
+                  monthly_fee:
+                    type: integer
+                  rfid_card_price:
+                    type: integer
+                  onetime_minimum_price:
+                    type: integer
+                  permitOperator:
+                    type: boolean
+                  permitCpo:
+                    type: integer
+                  permitEmp:
+                    type: integer
+                  v2:
+                    type: boolean
+              roaming_operator_code:
+                type: string
+              heartbeat_interval:
+                type: integer
+              heartbeat_failure_limit:
+                type: integer
+              meta:
+                type: object
+                properties:
+                  rfid_order_support:
+                    type: boolean
+                  hubject:
+                    type: boolean
+                  gireve:
+                    type: boolean
+                  updated_at:
+                    type: string
+                  rfid_whitelist:
+                    type: boolean
+              children:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        parent_id:
+                          type: integer
+                        name:
+                          type: string
+                        country:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            iso3:
+                              type: string
+                            name:
+                              type: string
+                            otp_in_app_enabled:
+                              type: integer
+                            dial_code:
+                              type: string
+                            created_at:
+                              type: string
+                            updated_at:
+                              type: string
+                        language:
+                          type: string
+                        currency:
+                          type: string
+                        maintenance_contact:
+                          type: string
+                        sms_number:
+                          type: string
+                        support:
+                          type: object
+                          properties:
+                            email:
+                              type: string
+                            phone:
+                              type: string
+                        pricing:
+                          type: object
+                          properties:
+                            payment_margin_percent:
+                              type: integer
+                            monthly_fee:
+                              type: integer
+                            rfid_card_price:
+                              type: integer
+                            onetime_minimum_price:
+                              type: integer
+                            permitOperator:
+                              type: boolean
+                            permitCpo:
+                              type: integer
+                            permitEmp:
+                              type: integer
+                            v2:
+                              type: boolean
+                        roaming_operator_code:
+                          type: string
+                        heartbeat_interval:
+                          type: integer
+                        heartbeat_failure_limit:
+                          type: integer
+                        meta:
+                          type: object
+                          properties:
+                            rfid_order_support:
+                              type: boolean
+                            hubject:
+                              type: boolean
+                            gireve:
+                              type: boolean
+                            updated_at:
+                              type: string
+                            rfid_whitelist:
+                              type: boolean
+                        children:
+                          type: object
+                          properties:
+                            data:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  parent_id:
+                                    type: integer
+                                  name:
+                                    type: string
+                                  children:
+                                    type: object
+                                    properties:
+                                      data:
+                                        type: array
+                                        items:
+                                          type: object
+                                          properties: {}
+                                  country:
+                                    type: object
+                                    properties:
+                                      code:
+                                        type: string
+                                      iso3:
+                                        type: string
+                                      name:
+                                        type: string
+                                      otp_in_app_enabled:
+                                        type: integer
+                                      dial_code:
+                                        type: string
+                                      created_at:
+                                        type: string
+                                      updated_at:
+                                        type: string
+                                  language:
+                                    type: string
+                                  currency:
+                                    type: string
+                                  maintenance_contact:
+                                    type: string
+                                  sms_number:
+                                    type: string
+                                  support:
+                                    type: object
+                                    properties:
+                                      email:
+                                        type: string
+                                      phone:
+                                        type: string
+                                  pricing:
+                                    type: object
+                                    properties:
+                                      payment_margin_percent:
+                                        type: integer
+                                      monthly_fee:
+                                        type: integer
+                                      rfid_card_price:
+                                        type: integer
+                                      onetime_minimum_price:
+                                        type: integer
+                                      permitOperator:
+                                        type: boolean
+                                      permitCpo:
+                                        type: integer
+                                      permitEmp:
+                                        type: integer
+                                      v2:
+                                        type: boolean
+                                  roaming_operator_code:
+                                    type: string
+                                  heartbeat_interval:
+                                    type: integer
+                                  heartbeat_failure_limit:
+                                    type: integer
+                                  meta:
+                                    type: object
+                                    properties:
+                                      rfid_order_support:
+                                        type: boolean
+                                      rfid_whitelist:
+                                        type: boolean
+                                      hubject:
+                                        type: boolean
+                                      gireve:
+                                        type: boolean
+                                      updated_at:
+                                        type: string
+          examples:
+            application/json:
+              id: 0
+              parent_id: 0
+              name: Virta
+              children:
+                data:
+                  - id: 111
+                    parent_id: 0
+                    name: Virta Finland
+                    children:
+                      data:
+                        - id: 222
+                          parent_id: 111
+                          name: Virta Helsinki
+                          children:
+                            data: []
+                          country:
+                            code: FI
+                            iso3: FIN
+                            name: Finland
+                            otp_in_app_enabled: 1
+                            dial_code: ''
+                            created_at: '2019-10-28 11:30:11'
+                            updated_at: '2019-10-28 11:30:11'
+                          language: Fi
+                          currency: EUR
+                          maintenance_contact: Test
+                          sms_number: '+11111111'
+                          support:
+                            email: test@virta.global
+                            phone: '+11111111'
+                          pricing:
+                            payment_margin_percent: 30
+                            monthly_fee: 0
+                            rfid_card_price: 0
+                            onetime_minimum_price: 0
+                            permitOperator: true
+                            permitCpo: 1
+                            permitEmp: 1
+                            v2: false
+                          roaming_operator_code: FI*001
+                          heartbeat_interval: 240
+                          heartbeat_failure_limit: 6
+                          meta:
+                            rfid_order_support: false
+                            rfid_whitelist: false
+                            hubject: false
+                            gireve: false
+                            updated_at: '2020-02-10 13:36:22'
+                    country:
+                      code: FI
+                      iso3: FIN
+                      name: Finland
+                      otp_in_app_enabled: 1
+                      dial_code: ''
+                      created_at: '2019-10-28 11:30:11'
+                      updated_at: '2019-10-28 11:30:11'
+                    language: Fi
+                    currency: EUR
+                    maintenance_contact: Customer Service
+                    sms_number: '+111111'
+                    support:
+                      email: test@virta.global
+                      phone: '+111111'
+                    pricing:
+                      payment_margin_percent: 39
+                      monthly_fee: 0
+                      rfid_card_price: 0
+                      onetime_minimum_price: 0
+                      permitOperator: false
+                      permitCpo: 0
+                      permitEmp: 0
+                      v2: false
+                    roaming_operator_code: FI*001
+                    heartbeat_interval: 70
+                    heartbeat_failure_limit: 6
+                    meta:
+                      rfid_order_support: false
+                      rfid_whitelist: false
+                      hubject: false
+                      gireve: false
+                      updated_at: '2020-02-04 12:15:56'
+              country:
+                code: FI
+                iso3: FIN
+                name: Finland
+                otp_in_app_enabled: 1
+                dial_code: ''
+                created_at: '2019-10-28 11:30:11'
+                updated_at: '2019-10-28 11:30:11'
+              language: en
+              currency: EUR
+              maintenance_contact: Admin
+              sms_number: '16100'
+              support:
+                email: support@virta.fi
+                phone: 0800-0220
+              pricing:
+                payment_margin_percent: 30
+                monthly_fee: 0
+                rfid_card_price: 0
+                onetime_minimum_price: 50
+                permitOperator: false
+                permitCpo: 0
+                permitEmp: 0
+                v2: false
+              roaming_operator_code: FI*001
+              heartbeat_interval: 60
+              heartbeat_failure_limit: 0
+              meta:
+                rfid_order_support: true
+                rfid_whitelist: true
+                hubject: false
+                gireve: false
+                updated_at: '2020-02-04 12:15:56'
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              message:
+                type: string
+              error_code:
+                type: integer
+          examples:
+            application/json:
+              status_code: 401
+              message: Unauthenticated.
+              error_code: 0
+        '403':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: >-
+                '<<apiKey>>' not a valid key=value pair (missing equal-sign) in
+                Authorization header: 'Bearer <<apiKey>>'.
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+  /cpo/charges:
+    get:
+      operationId: GET_cpo-charges
+      tags:
+        - Statistics and data analysis
+      description: |-
+        All charges that belong to CPOs.
+
+        Permissions needed: View CPO info or View CPO reports.
+      parameters:
+        - name: from
+          in: query
+          description: >-
+            Retrieve all the charges after this timestamp. Default to UTC time 0
+            (1970-01-01T00:00:00+00:00) if not defined
+          type: string
+          format: date-time
+        - name: to
+          in: query
+          description: >-
+            Retrieve all the charges before this timestamp. Default to current
+            time if not defined
+          type: string
+          format: date-time
+        - name: sellerId
+          in: query
+          description: The sellerId of the CPO
+          type: integer
+        - name: evseId
+          in: query
+          description: The EVSE id
+          type: integer
+        - name: rfid
+          in: query
+          description: The RFID
+          type: string
+        - name: page
+          in: query
+          description: >-
+            If the ?page parameter is omitted, then the request will return the
+            first page
+
+
+            minimum: 1
+          type: integer
+        - name: perPage
+          in: query
+          description: >-
+            Number of items per page. If the ?perPage is omitted, then the
+            default value 25 is used. Max results count is 1000.
+
+
+            Allowed Values: 0, 10, 25, 50, 100, 1000
+          type: integer
+        - name: Authorization
+          in: header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              evseId:
+                type: integer
+              fullEvseId:
+                type: string
+              locationId:
+                type: integer
+              startTime:
+                type: string
+              stopTime:
+                type: string
+              signedMeterValueBegin:
+                type: string
+              signedMeterValueEnd:
+                type: string
+              meterStart:
+                type: integer
+              meterStop:
+                type: integer
+              wattHour:
+                type: integer
+              duration:
+                type: integer
+              connectorId:
+                type: integer
+              socketType:
+                type: string
+              method:
+                type: string
+              amount:
+                type: integer
+              currency:
+                type: string
+              evcoId:
+                type: string
+              empSellerId:
+                type: string
+              roamingEmpId:
+                type: string
+              created:
+                type: string
+              rfid:
+                type: string
+              organizationId:
+                type: integer
+              cdrId:
+                type: integer
+              freeCharging:
+                type: string
+              UUID:
+                type: string
+              station:
+                type: object
+                properties:
+                  identity:
+                    type: string
+                  name:
+                    type: string
+                  location:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      address:
+                        type: string
+                      city:
+                        type: string
+                      coordinates:
+                        type: object
+                        properties:
+                          lat:
+                            type: number
+                          lng:
+                            type: number
+                      locationType:
+                        type: string
+          examples:
+            application/json:
+              evseId: 1111
+              fullEvseId: FI*001*E1111
+              locationId: 1111
+              startTime: '1970-01-01T02:00:18+02:00'
+              stopTime: '2018-04-08T18:14:01+03:00'
+              signedMeterValueBegin: 23AD232
+              signedMeterValueEnd: 223DDKDa23
+              meterStart: 0
+              meterStop: 2863300
+              wattHour: 2863300
+              duration: 16777215
+              connectorId: 2
+              socketType: AC
+              method: rfid
+              amount: 0
+              currency: ''
+              evcoId: ''
+              empSellerId: ''
+              roamingEmpId: ''
+              created: '2018-04-08T18:14:01+03:00'
+              rfid: ADKDK34AA
+              organizationId: 111
+              cdrId: 1111111
+              freeCharging: 'no'
+              UUID: 85d7427e-3b3f-11e8-8409-6c3be5a9c168
+              station:
+                identity: VirtaGlobalCharger
+                name: Virta Office Charger
+                location:
+                  id: 1111
+                  address: Energy Street 3
+                  city: Helsinki
+                  coordinates:
+                    lat: 60.31139
+                    lng: 18.17375
+                  locationType: Public
+        '401':
+          description: ''
+          examples:
+            application/json:
+              status_code: 401
+              message: token_not_provided
+        '429':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+          examples:
+            application/json:
+              message: Limit Exceeded
+      security:
+        - Authorization: []
+        - x-api-key: []
+  /stations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /sellers/{id}/customer/access:
+    parameters:
+      - name: id
+        in: path
+        description: Seller ID of the private CPO
+        required: true
+        type: number
+
+parameters:
+  trait:elasticSearchPagination:limit:
+    name: limit
+    in: query
+    description: 'Number of records. If unspecified: 100.000.'
+    type: integer
+  trait:elasticSearchPagination:from:
+    name: from
+    in: query
+    description: 'Returns records from a specific point. If unspecified: 0.'
+    type: integer
+  trait:paginatedRequest:limit:
+    name: limit
+    in: query
+    type: number
+  trait:paginatedRequest:offset:
+    name: offset
+    in: query
+    type: number
+  trait:pagination:page:
+    name: page
+    in: query
+    description: >-
+      If the `?page` parameter is omitted, then the request will return the
+      first page
+    type: integer
+    minimum: 1
+  trait:pagination:perPage:
+    name: perPage
+    in: query
+    description: >-
+      Number of items per page. If the `?perPage` is omitted, then the default
+      value 25 is used. Max results count is 100.
+    type: integer
+    enum:
+      - 0
+      - 10
+      - 25
+      - 50
+      - 100
+  trait:pagination:X-Total-Count:
+    name: X-Total-Count
+    in: header
+    type: integer
+  trait:pagination:link:
+    name: link
+    in: header
+    type: string
+    default: <URI-Reference>; rel="next"
+definitions:
+  connector:
+    title: Connector
+    type: object
+    properties:
+      connectorID:
+        type: string
+      type:
+        type: string
+      maxKwh:
+        type: number
+      maxKw:
+        type: number
+      currentType:
+        type: string
+      status:
+        type: string
+    required:
+      - connectorID
+      - type
+      - maxKwh
+      - maxKw
+      - currentType
+      - status
+    example:
+      connectorID: 1
+      type: Mennekes
+      maxKwh: 18
+      maxKw: 18
+      currentType: AC
+      status: null
+  cpoconnector:
+    title: cpoConnector
+    type: object
+    properties:
+      connectorId:
+        type: integer
+      type:
+        type: string
+        description: The plug type of the connector.
+        enum:
+          - Mennekes
+          - Schuko
+          - CHAdeMO
+          - CCS
+          - Type 3
+          - Pantograph
+          - Type 1
+      power:
+        type: number
+        minimum: 0
+        description: In kW
+      currentType:
+        type: string
+        enum:
+          - ac
+          - dc
+      status:
+        type:
+          - string
+          - 'null'
+        enum:
+          - Operative
+          - Inoperative
+    example:
+      connectorId: 1
+      type: Type 3
+      power: 22
+      currentType: ac
+      status: Operative
+  cpoevse:
+    title: cpoEvse
+    type: object
+    properties:
+      evseId:
+        type: integer
+        description: The EVSE-ID of the charger
+      customEvseId:
+        type: string
+        description: >-
+          If a custom EVSE-ID is defined it is returned here. If nothing is
+          defined: null
+      isV2G:
+        type: boolean
+        description: V2G (Vehicle to Grid) charging location
+      oneTimePayment:
+        type: boolean
+        description: Defines if Onetimepayment is enabled on the EVSE
+      freeUsage:
+        type: boolean
+        description: Defines if the EVSE can be used for free.
+      status:
+        type: string
+        enum:
+          - available
+          - busy
+          - disconnected
+        description: The current status of the EVSE
+      adminStatus:
+        type: string
+        enum:
+          - in-service
+          - in-deployment
+          - in-maintenance
+          - out-of-service
+        description: The admin status of the EVSE
+      eichrechtType:
+        type: string
+        enum:
+          - SAFE
+          - SAM
+          - Innogy
+          - None
+        description: The Eichrecht (German Calibration Law) type of the station.
+      chargerVendor:
+        type: string
+        description: The vendor of the charger.
+      chargerModel:
+        type: string
+        description: The model of the charger.
+      maxPower:
+        type: string
+        description: The maximum power in kW of the EVSE.
+      maxCurrent:
+        type: integer
+        description: The current limit configuration of the EVSE
+      maintenanceContact:
+        type:
+          - string
+        description: The maintenance contact information of the EVSE.
+      chargeBoxIdentity:
+        type: string
+        description: The identity of the charger that is sent to our system.
+      simNumber:
+        type: string
+        description: The SIM number of the charger that is sent to our system.
+      iccidNumber:
+        type: string
+        description: The ICCID number of the charger that is sent to our system.
+      softwareVersion:
+        type: string
+        description: The software version of the charger.
+      createdDate:
+        type: string
+        format: date-time
+        description: Timestamp when the EVSE has been created.
+      lastConnectionDate:
+        type: string
+        format: date-time
+        description: Timestamp when the EVSE has last connected to our system.
+      lastUpdateDate:
+        type: string
+        format: date-time
+        description: Timestamp when the EVSE has been last updated in our system.
+      authenticationModes:
+        type: array
+        description: Possible authentication modes on the EVSE.
+        items:
+          type: string
+          enum:
+            - ''
+            - NRC
+            - NRD
+            - R
+            - DP
+          description: >-
+            NRC: Mifare classic, NRD: Mifare Desfire, R: Remote, DP: Direct
+            Payment, Empty String: No authentication modes defined.
+      lastIp:
+        type: string
+        description: Last known IPv4 or IPv6 of the charger.
+      connectors:
+        type: array
+        items:
+          $ref: '#/definitions/cpoconnector'
+    example:
+      id: 1235
+      connectors:
+        - connectorID: 1
+          type: Mennekes
+          maxKwh: 18
+          maxKw: 18
+          currentType: AC
+          status: null
+        - connectorID: 1
+          type: Schuko
+          maxKwh: 3.7
+          maxKw: 3.7
+          currentType: AC
+          status: null
+      available: true
+      reservable: true
+      reserved: false
+      occupied: false
+      isV2G: false
+      currency: EUR
+      pricing:
+        - name: price_per_kwh
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_per_minute
+          priceCents: 3.33
+          currency: EUR
+          priceCentsWithoutVat: 2.77
+          priceCentsVat: 0.56
+        - name: price_initial_charge_fee
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_reservation_per_minute
+          priceCents: 1
+          currency: EUR
+          priceCentsWithoutVat: 0.83
+          priceCentsVat: 0.17
+      oneTimePayment: true
+      oneTimePaymentInAppEnabled: true
+      status: 1
+      oneTimeMinimum: 50
+      oneTimePricing:
+        - name: price_per_kwh
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_per_minute
+          priceCents: 4.329
+          currency: EUR
+          priceCentsWithoutVat: 3.61
+          priceCentsVat: 0.72
+        - name: price_initial_charge_fee
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_reservation_per_minute
+          priceCents: 1.3
+          currency: EUR
+          priceCentsWithoutVat: 1.08
+          priceCentsVat: 0.22
+      oneTimePricingRatio: 1.3
+      minutesWithoutTimeCharge: 0
+      isFree: false
+      remoteAuthorization: true
+      evseId: FR*S37*E1235
+  cpolocationpaginatedresponse:
+    title: CpoLocationPaginatedResponse
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/cpolocation'
+      meta:
+        type: object
+        properties:
+          from:
+            type: integer
+            minimum: 0
+            description: Number of the first returned record in data.
+          to:
+            type: integer
+            minimum: 0
+            description: Number of the last returned record in data.
+          total:
+            type: integer
+            minimum: 0
+            description: Total items returned in data.
+    example:
+      data:
+        - countryCode: in
+          latitude: -71731443
+        - cpoSellerId: -31080517
+          countryCode: nisi esse dolor q
+          postalCode: laborum voluptate aliqua deserunt dolor
+          hiddenLocation: true
+        - cpoSellerId: -45000087
+          name: esse Duis occaecat exercitation
+          latitude: 73344500
+          hiddenLocation: false
+      meta:
+        from: 2724344
+        to: 61990474
+        total: 19498395
+  cpolocation:
+    title: cpoLocation
+    type: object
+    properties:
+      locationId:
+        type:
+          - integer
+        description: Location Id of the charging location
+      name:
+        type:
+          - string
+        description: Name of the charging location
+      latitude:
+        type:
+          - number
+        description: Latitute
+      longitude:
+        type:
+          - number
+        description: Longitute
+      address:
+        type:
+          - string
+        description: Address of the charging location
+      city:
+        type:
+          - string
+        description: City of the charging location
+      postalCode:
+        type:
+          - string
+        description: The postal code of the charging location
+      locationType:
+        type:
+          - string
+        enum:
+          - Public
+          - Home
+          - Office
+        description: The location type of the charging location
+      countryCode:
+        type:
+          - string
+        description: Country of the charging location.
+      cpoSellerId:
+        type:
+          - integer
+        description: The seller id of the charging location.
+      cpoName:
+        type: string
+        description: The name of the CPO of the charging location.
+      privateCpo:
+        type: boolean
+        description: Defines if the CPO of the location is a private CPO.
+      locationDescription:
+        type:
+          - string
+        description: Instructions to the EV Driver how to find the charging location.
+      hiddenLocation:
+        type: boolean
+        description: Defines if the location is hidden.
+      openingTime:
+        $ref: '#/definitions/openingtime'
+      evses:
+        type: array
+        items:
+          $ref: '#/definitions/cpoevse'
+      created:
+        type: string
+        format: date-time
+        description: The creation time of the location.
+      lastUpdated:
+        type: string
+        format: date-time
+        description: The last updated timestamp of the location.
+    example:
+      locationId: -11172297
+      name: 'proident '
+      latitude: 432350
+      longitude: -42582118
+      address: culpa ad
+      city: cupidatat eiusmod aliqua officia dolore
+      postalCode: nisi ad reprehenderit
+      locationType: Home
+      countryCode: nulla dolor consectetur Ut occaecat
+      cpoSellerId: 97781761
+      cpoName: irure magna eu exercitation
+      privateCpo: false
+      locationDescription: dolor nostrud velit eiusmod enim
+      hiddenLocation: true
+      openingTime:
+        twentyFourSeven: false
+        exceptionalOpenings:
+          period_begin: '3096-04-01T12:42:02.501Z'
+          period_end: '3568-02-07T20:12:08.243Z'
+        exceptionalClosings:
+          period_begin: '3837-03-26T06:14:37.235Z'
+          period_end: '2055-03-17T18:11:01.256Z'
+        regularHours:
+          '2':
+            - periodBegin: quis veniam velit occaecat dolor
+              periodEnd: in commodo aliqua in est
+            - periodBegin: do elit ullamco labore
+              periodEnd: ut non amet in esse
+          '4':
+            - periodBegin: veniam consequat id quis reprehenderit
+              periodEnd: minim cupidatat
+            - periodBegin: eiusmod nostrud sint consequat quis
+              periodEnd: proident dolore
+            - periodBegin: incididunt eiusmod
+              periodEnd: reprehenderit consequat am
+      evses:
+        - evseId: 84971950
+          isV2G: true
+          oneTimePayment: true
+          iccidNumber: dolore ipsum proident culpa officia
+          createdDate: '2820-01-16T12:49:57.976Z'
+          utdfd: sit
+          magnaab5: -46250942
+          dolore: -11150192
+          nostrud0: -12058091
+          Excepteur9: -48541064
+          do49: Ut sed aliquip exercitation
+          proident30: false
+          exe93: 54375557
+          doloreed: veniam culpa reprehenderit commodo et
+        - evseId: 28936687
+          isV2G: false
+          oneTimePayment: false
+          commodo16: dolore laborum
+          Excepteurb68: 88717717
+          est07: eiusmod
+          aliquip37: 46748163
+          dolorecbe: true
+          consequat3: -5729214
+          mollit821: -35305190
+          fugiatb2f: 21594749
+          ina30: -59443443
+          minim08d: 23616948
+          ullamco49: -50601837
+        - evseId: -4165577
+          isV2G: false
+          oneTimePayment: false
+          lastConnectionDate: '2246-10-08T07:19:20.755Z'
+          Utc: -65897004
+          aliquafd0: false
+          elitd1: dolore commodo
+          elit67a: amet deserun
+          deserunta: -70053265
+          pariatur9c6: 54331820
+          dolore5: 97582605
+          enim1: -16260211
+          sed3: 1270383
+          ute2: false
+        - evseId: -25267947
+          isV2G: false
+          oneTimePayment: true
+          adminStatus: out-of-service
+          eichrechtType: None
+          lastIp: ''
+          freeUsage: false
+          occaecata7f: aute cillum qui
+          aliquipd: 97932152
+          Ut650: dolor nisi sunt minim et
+          nulla106: -95671493
+          idf: 54864911
+          exercitation8: -33537115
+          quie7: 90955024
+        - evseId: -30913752
+          isV2G: false
+          oneTimePayment: false
+          sint005: 12156216
+          dolor6: -65631669
+          doloree8: 2005518
+          sitbc7: eu Ut
+          veniam186: 50335874
+          culpa4ae: commodo reprehenderit
+          consequat13b: culpa nostrud esse
+          minim71: -27549757
+          eue67: Ut proident laboris
+          esse0a6: 69039174
+          reprehenderit9: 38925375
+      created: '2021-03-16T06:19:40.311Z'
+      lastUpdated: '2021-12-02T21:58:48.439Z'
+  double:
+    title: double
+    type: number
+  evse:
+    title: EVSE
+    type: object
+    properties:
+      id:
+        type: integer
+      connectors:
+        type: array
+        items:
+          $ref: '#/definitions/connector'
+      available:
+        type: boolean
+      reservable:
+        type: boolean
+      reserved:
+        type: boolean
+      occupied:
+        type: boolean
+      isV2G:
+        type: boolean
+      currency:
+        type: string
+      pricing:
+        type: array
+        items:
+          $ref: '#/definitions/pricing'
+      oneTimePayment:
+        type: boolean
+      oneTimePaymentInAppEnabled:
+        type: boolean
+      status:
+        type: integer
+      oneTimeMinimum:
+        type: integer
+      oneTimePricing:
+        type: array
+        items:
+          $ref: '#/definitions/pricing'
+      oneTimePricingRatio:
+        type: number
+      minutesWithoutTimeCharge:
+        type: integer
+      isFree:
+        type: boolean
+      evseId:
+        type: string
+      remoteAuthorization:
+        type: boolean
+    required:
+      - id
+      - available
+      - reservable
+      - reserved
+      - occupied
+      - isV2G
+      - currency
+      - oneTimePayment
+      - oneTimePaymentInAppEnabled
+      - oneTimeMinimum
+      - oneTimePricingRatio
+      - minutesWithoutTimeCharge
+      - isFree
+      - evseId
+      - remoteAuthorization
+    example:
+      id: 1235
+      connectors:
+        - connectorID: 1
+          type: Mennekes
+          maxKwh: 18
+          maxKw: 18
+          currentType: AC
+          status: null
+        - connectorID: 1
+          type: Schuko
+          maxKwh: 3.7
+          maxKw: 3.7
+          currentType: AC
+          status: null
+      available: true
+      reservable: true
+      reserved: false
+      occupied: false
+      isV2G: false
+      currency: EUR
+      pricing:
+        - name: price_per_kwh
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_per_minute
+          priceCents: 3.33
+          currency: EUR
+          priceCentsWithoutVat: 2.77
+          priceCentsVat: 0.56
+        - name: price_initial_charge_fee
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_reservation_per_minute
+          priceCents: 1
+          currency: EUR
+          priceCentsWithoutVat: 0.83
+          priceCentsVat: 0.17
+      oneTimePayment: true
+      oneTimePaymentInAppEnabled: true
+      status: 1
+      oneTimeMinimum: 50
+      oneTimePricing:
+        - name: price_per_kwh
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_per_minute
+          priceCents: 4.329
+          currency: EUR
+          priceCentsWithoutVat: 3.61
+          priceCentsVat: 0.72
+        - name: price_initial_charge_fee
+          priceCents: 0
+          currency: EUR
+          priceCentsWithoutVat: 0
+          priceCentsVat: 0
+        - name: price_reservation_per_minute
+          priceCents: 1.3
+          currency: EUR
+          priceCentsWithoutVat: 1.08
+          priceCentsVat: 0.22
+      oneTimePricingRatio: 1.3
+      minutesWithoutTimeCharge: 0
+      isFree: false
+      remoteAuthorization: true
+      evseId: FR*S37*E1235
+  exceptional-period:
+    title: Exceptional Period
+    type: object
+    properties:
+      period_begin:
+        type: string
+        format: date-time
+      period_end:
+        type: string
+        format: date-time
+  long:
+    title: long
+    type: number
+  openingperiod:
+    title: OpeningPeriod
+    type: object
+    properties:
+      periodBegin:
+        type: string
+      periodEnd:
+        type: string
+    required:
+      - periodBegin
+      - periodEnd
+    example:
+      periodBegin: '08:00'
+      periodEnd: '23:00'
+  openingtime:
+    title: OpeningTime
+    type: object
+    properties:
+      twentyFourSeven:
+        type: boolean
+      exceptionalOpenings:
+        $ref: '#/definitions/exceptional-period'
+      exceptionalClosings:
+        $ref: '#/definitions/exceptional-period'
+      regularHours:
+        $ref: '#/definitions/regularhours'
+    example:
+      twentyFourSeven: true
+      exceptionalOpenings:
+        period_begin: '2021-03-20T09:12:28Z'
+        period_end: '2021-03-20T10:12:28Z'
+      exceptionalClosings: null
+      regularHours:
+        '0':
+          - periodBegin: '12:00'
+            periodEnd: '15:00'
+        '1':
+          - periodBegin: '12:00'
+            periodEnd: '15:00'
+        '2':
+          - periodBegin: '12:00'
+            periodEnd: '15:00'
+        '3':
+          - periodBegin: '12:00'
+            periodEnd: '15:00'
+        '4':
+          - periodBegin: '12:00'
+            periodEnd: '15:00'
+        '5':
+          - periodBegin: '12:00'
+            periodEnd: '15:00'
+        '6':
+          - periodBegin: '12:00'
+            periodEnd: '15:00'
+  paginatedresponse:
+    title: PaginatedResponse
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          type: object
+      meta:
+        type: object
+        properties:
+          from:
+            type: integer
+            minimum: 0
+            description: Number of the first returned record in data.
+          to:
+            type: integer
+            minimum: 0
+            description: Number of the last returned record in data.
+          total:
+            type: integer
+            minimum: 0
+            description: Total items returned in data.
+    example:
+      meta:
+        from: 1
+        to: 10
+        total: 100
+      data:
+        - {}
+  pricing:
+    title: Pricing
+    type: object
+    properties:
+      name:
+        type:
+          - string
+          - 'null'
+      priceCents:
+        type:
+          - number
+          - 'null'
+      currency:
+        type:
+          - string
+          - 'null'
+      priceCentsWithoutVat:
+        type:
+          - number
+          - 'null'
+      priceCentsVat:
+        type:
+          - number
+          - 'null'
+    required:
+      - name
+      - priceCents
+      - currency
+      - priceCentsWithoutVat
+      - priceCentsVat
+    example:
+      name: price_per_minute
+      priceCents: 3.33
+      currency: EUR
+      priceCentsWithoutVat: 2.77
+      priceCentsVat: 0.56
+  regularhours:
+    title: RegularHours
+    type: object
+    properties:
+      '0':
+        type:
+          - array
+          - 'null'
+        items:
+          $ref: '#/definitions/openingperiod'
+      '1':
+        type:
+          - array
+          - 'null'
+        items:
+          $ref: '#/definitions/openingperiod'
+      '2':
+        type:
+          - array
+          - 'null'
+        items:
+          $ref: '#/definitions/openingperiod'
+      '3':
+        type:
+          - array
+          - 'null'
+        items:
+          $ref: '#/definitions/openingperiod'
+      '4':
+        type:
+          - array
+          - 'null'
+        items:
+          $ref: '#/definitions/openingperiod'
+      '5':
+        type:
+          - array
+          - 'null'
+        items:
+          $ref: '#/definitions/openingperiod'
+      '6':
+        type:
+          - array
+          - 'null'
+        items:
+          $ref: '#/definitions/openingperiod'
+    example:
+      '0':
+        - periodBegin: '12:00'
+          periodEnd: '15:00'
+      '1':
+        - periodBegin: '12:00'
+          periodEnd: '15:00'
+      '2':
+        - periodBegin: '12:00'
+          periodEnd: '15:00'
+      '3':
+        - periodBegin: '12:00'
+          periodEnd: '15:00'
+      '4':
+        - periodBegin: '12:00'
+          periodEnd: '15:00'
+      '5':
+        - periodBegin: '12:00'
+          periodEnd: '15:00'
+      '6':
+        - periodBegin: '12:00'
+          periodEnd: '15:00'
+  Station:
+    title: Station
+    type: object
+    properties:
+      id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      city:
+        type: string
+      address:
+        type: string
+      providers:
+        type: string
+      icon:
+        type:
+          - 'null'
+          - number
+      evses:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+            connectors:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  maxKw:
+                    $ref: '#/definitions/double'
+                  currentType:
+                    type: string
+                  status:
+                    type: string
+                    description: Operative|Inoperative
+            groupName:
+              type: string
+            evseId:
+              type: string
+            available:
+              type: boolean
+            reservable:
+              type: boolean
+            status:
+              type: integer
+            pricing:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  priceCents:
+                    type: integer
+                  currency:
+                    type: string
+            oneTimePayment:
+              type: boolean
+            oneTimeMinimum:
+              type: integer
+            oneTimePricing:
+              type: object
+              properties:
+                name:
+                  type: string
+                priceCents:
+                  type: integer
+                currency:
+                  type: string
+            reserved:
+              type: boolean
+            occupied:
+              type: boolean
+            minutesWithoutTimeCharge:
+              type: integer
+            oneTimePricingRatio:
+              type: number
+    example:
+      id: 132292
+      latitude: 46.5343
+      longitude: 2.60819
+      name: Vallon-en-Sully, Mairie
+      city: Vallon-en-Sully
+      address: Route de Nassigny
+      provider: Hubject
+      icon: null
+      evses:
+        - id: 132292
+          connectors:
+            - type: Type E
+              maxKw: 16
+            - type: Mennekes
+              maxKw: 22
+          groupName: ''
+        - id: 132309
+          connectors:
+            - type: Type E
+              maxKw: 16
+            - type: Type 3
+              maxKw: 22
+          groupName: ''
+      isRemoved: false
+      isPrivate: false
+  response:
+    title: Customer - Response
+    type: object
+    properties:
+      id:
+        type: integer
+        description: Unique identifier of the customer
+      sellerId:
+        type: integer
+        description: Identifier of the EMP of the customer
+      wantRecharge:
+        type: boolean
+        description: >-
+          0 = no recharge, 1 = automatic recharge if customer balance < value
+          defined by the EMP of the customer
+      mobile:
+        type: string
+        description: >-
+          Customers mobile number, will be used for sending SMS or logging in.
+          Format is international phone number: +358401231212
+        pattern: >-
+          \+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|
+          2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|
+          4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}$
+      email:
+        type: string
+        description: Customer email address
+        format: email
+      language:
+        type: string
+        description: ISO code for language. Lowercase.
+        minLength: 2
+        maxLength: 2
+        pattern: ^[a-z]+$
+      nameFirst:
+        type: string
+      nameLast:
+        type: string
+      company:
+        type: string
+      wantHardware:
+        type: boolean
+        desription: 0 = Customer didn't order RFID, 1 = Customer ordered RFID
+      freeSellers:
+        type: string
+        default: ''''''
+        description: SellerId of CPO where the customer can charge for free
+      products:
+        type: string
+        default: ''''''
+        description: CPO ProductId that should be assigned to the customer
+      address:
+        type: object
+        description: >-
+          Only one address per customer. Note that in response address is null,
+          if the object has no values.
+        properties:
+          street:
+            type: string
+          additional:
+            type: string
+          city:
+            type: string
+          country:
+            type: string
+          more_details:
+            type: string
+          zipcode:
+            type: string
+            description: zipcode of the address
+        required:
+          - street
+          - city
+          - country
+      privateCpos:
+        type: array
+        description: >-
+          Array of the seller Ids of private CPOs the customer should have
+          access to
+        default: []
+        items:
+          type: integer
+      disabled:
+        type: boolean
+        default: false
+        description: >-
+          true = customer account is disabled, false = customer account is
+          enabled
+      customFieldInformation:
+        type: string
+        default: ''''''
+        description: Free text field to store additional customer information
+      billable:
+        type: boolean
+        default: false
+        describtion: >-
+          false = the customer is not billed, true = the customer is billed by
+          the EMP
+      wantReminder:
+        type: boolean
+        default: false
+      wantServiceNotifications:
+        type: boolean
+        default: false
+      wantAdvertisingNotifications:
+        type: boolean
+        default: false
+      smsEnabled:
+        type: boolean
+        default: false
+        description: SMS notifications are disabled by default
+      brand:
+        type: string
+        maxLength: 50
+        description: Brand the customer belongs to
+      newsletter:
+        type: boolean
+      monthlyReceipt:
+        type: boolean
+      skipWelcomeEmail:
+        type: boolean
+      billing_type:
+        type: integer
+        minimum: 0
+        maximum: 2
+        default: 0
+        description: 'Customer billing type: 0 prepaid, 1 postpaid, 2 postpaid by card'
+      externalReference:
+        type: string
+        description: Optional reference to third party customer id
+        maxLength: 64
+      customerCards:
+        type: array
+        items:
+          type: object
+          properties:
+            expireDate:
+              type: string
+            cardNumber:
+              type: string
+    example:
+      id: 77
+      sellerId: 1
+      wantRecharge: false
+      mobile: '+35866559923201'
+      email: hello@hello.tjz
+      language: en
+      wantHardware: false
+      nameFirst: david01
+      nameLast: lallalum
+      company: private co
+      products: 'sed labore '
+      freeSellers: ''
+      address:
+        street: Hi Street 1
+        additional: line2
+        city: Vienna
+        zipcode: '0010'
+        country: Austria
+        more_details: EEEEEE
+      privateCpos: []
+      paymentType: none
+      disabled: false
+      customFieldInformation: in labore Duis elit dolore
+      homeStation: {}
+      billable: false
+      draft: false
+      wantReminder: true
+      wantServiceNotifications: false
+      wantAdvertisingNotifications: false
+      smsEnabled: true
+      brand: ''
+      newsletter: false
+      monthlyReceipt: false
+      externalReference: Optional reference to third party customer id
+  request:
+    title: Customer - Request
+    type: object
+    properties:
+      sellerId:
+        type: integer
+        description: Identifier of the EMP of the customer
+      wantRecharge:
+        type: boolean
+        description: >-
+          0 = no recharge, 1 = automatic recharge if customer balance is under
+          the recharge value defined by the EMP of the customer (only applicable
+          for prepaid customers)
+      mobile:
+        type: string
+        description: >-
+          Customers mobile number, will be used for sending SMS or logging in.
+          Format is international phone number: +358401231212
+        pattern: >-
+          \+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|
+          2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|
+          4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}$
+      email:
+        type: string
+        description: Customer email address
+        format: email
+      language:
+        type: string
+        description: ISO code for language. Lowercase.
+        minLength: 2
+        maxLength: 2
+        pattern: ^[a-z]+$
+      nameFirst:
+        type: string
+      nameLast:
+        type: string
+      company:
+        type: string
+      wantHardware:
+        type: boolean
+        desription: 0 = Customer didn't order RFID, 1 = Customer ordered RFID
+      freeSellers:
+        type: string
+        default: ''''''
+        description: SellerId of CPO where the customer can charge for free
+      products:
+        type: string
+        default: ''''''
+        description: CPO ProductId that should be assigned to the customer
+      address:
+        type: object
+        description: >-
+          Only one address per customer. Note that in response address is null,
+          if the object has no values.
+        properties:
+          street:
+            type: string
+          additional:
+            type: string
+          city:
+            type: string
+          country:
+            type: string
+          more_details:
+            type: string
+          zipcode:
+            type: string
+        required:
+          - street
+          - city
+          - country
+      privateCpos:
+        type: array
+        description: >-
+          Array of the seller Ids of private CPOs the customer should have
+          access to
+        default: []
+        items:
+          type: integer
+      disabled:
+        type: boolean
+        default: false
+        description: >-
+          true = customer account is disabled, false = customer account is
+          enabled
+      customFieldInformation:
+        type: string
+        default: ''''''
+        description: Free text field to store additional customer information
+      billable:
+        type: boolean
+        default: false
+        describtion: >-
+          false = the customer is not billed, true = the customer is billed by
+          the EMP
+      brand:
+        type: string
+        maxLength: 50
+        description: Brand the customer belongs to
+      skipWelcomeEmail:
+        type: boolean
+        description: If false a welcome email is sent to the customer
+      billing_type:
+        type: integer
+        minimum: 0
+        maximum: 2
+        default: 0
+        description: 'Customer billing type: 0 prepaid, 1 postpaid, 2 postpaid by card'
+      externalReference:
+        type: string
+        description: Optional reference to third party customer id
+        maxLength: 64
+    required:
+      - sellerId
+      - wantRecharge
+      - mobile
+      - email
+      - language
+      - nameFirst
+      - nameLast
+      - wantHardware
+    example:
+      sellerId: 93028106
+      wantRecharge: true
+      mobile: '+63262575924'
+      email: abc@def.com
+      language: en
+      nameFirst: occaecat consectetur
+      nameLast: dolore amet reprehenderit voluptate ullamco
+      company: private co
+      wantHardware: false
+      freeSellers: fugiat Excepteur dolor ut pariatur
+      products: commodo ullamco
+      address:
+        street: cupidatat consectetur
+        additional: line2
+        city: commodo
+        zipcode: '22222'
+        country: deserunt sunt Duis Ut
+        more_details: enim incididunt amet
+      privateCpos:
+        - 123
+        - 345
+      disabled: false
+      customFieldInformation: anim
+      billable: true
+      draft: false
+      wantReminder: true
+      wantServiceNotifications: false
+      wantAdvertisingNotifications: false
+      smsEnabled: false
+      brand: proident sint dolore
+      newsletter: true
+      monthlyReceipt: false
+      skipWelcomeEmail: true
+      externalReference: ABC123
+  transactionCharge:
+    title: Transaction - Charge
+    type: object
+    properties:
+      uuid:
+        type: string
+        format: uuid
+        description: The UUID to identidy the charge
+      customerId:
+        type: integer
+        description: Id of the customer
+      amount:
+        type: integer
+        description: Charge price in cents
+      currency:
+        type: string
+        minLength: 3
+        maxLength: 3
+        description: Charge price's currency
+      transactionType:
+        type: string
+        enum:
+          - charge
+      created:
+        type: string
+        description: Time when the charge transaction was created
+        format: date-time
+      customerGroupId:
+        type: integer
+        description: Id of the group the customer belongs to
+      customerGroupName:
+        type: string
+        description: Name of group the customer belongs to
+      organizationId:
+        type: integer
+        description: Id of the EMP of the customer
+      paymentType:
+        type: string
+        enum:
+          - Prepaid
+          - Postpaid
+          - Postpaid (by card)
+        Description: The payment type of the customer
+      startTime:
+        type: string
+        format: date-time
+        description: Start time of the charge event
+      stopTime:
+        type: string
+        format: date-time
+        description: End time of the charge event
+      signedMeterValueBegin:
+        type:
+          - string
+          - 'null'
+        description: >-
+          Signed meter values at the start of the charge event. Required by the
+          German calibration law (Eichrecht).
+      signedMeterValueEnd:
+        type:
+          - string
+          - 'null'
+        description: >-
+          Signed meter values at the end of the charge event. Required by the
+          German calibration law (Eichrecht).
+      duration:
+        type: integer
+        description: Duration in minutes
+        minimum: 0
+      wattHour:
+        type: integer
+        minimum: 0
+        description: Power consumed
+      stationUuid:
+        type: string
+        format: uuid
+        description: The UUID to identify the station
+      rfid:
+        type:
+          - string
+          - 'null'
+        description: RFID of the charge, if any.
+      empShare:
+        type: integer
+        description: EMP share in cents of the charge event
+      evseId:
+        type: integer
+        description: The EVSE id of the charging station
+      plugType:
+        type: string
+        enum:
+          - AC
+          - DC
+        Description: The plug type of the charging station
+      cdrId:
+        type: integer
+        Description: Identifier for the charge event
+      operatorPrice:
+        type: integer
+        description: Operator price in cents of the charge event
+      operatorCurrency:
+        type: string
+        description: Currency of the operator price
+      operatorId:
+        type: integer
+        description: Organization Id of the Operator
+      freeCharging:
+        type: string
+        description: 'Is the charge event a free charge: yes or no'
+      empTariffId:
+        type:
+          - integer
+          - 'null'
+        description: Id of the customer tariff (only for pricing v2)
+      empTariffName:
+        type:
+          - string
+          - 'null'
+        description: Name of the customer tariff (only for pricing v2)
+      fullEvseId:
+        type: string
+        description: EVSE of the charging station including roaming identifiers
+      cpoOperatorId:
+        type: string
+        description: The roaming identifier of the CPO
+      meterStart:
+        type: integer
+        description: Meter values at the start of the charge event
+      meterStop:
+        type: integer
+        description: Meter values at the start of the charge event
+      notes:
+        type: array
+        description: Additional information concerning the charge event
+      eichrechtType:
+        type: string
+        enum:
+          - None
+          - SAFE
+          - SAM
+          - Innogy
+        description: The Eichrecht type the charge
+      empKwhNetPrice:
+        type:
+          - integer
+          - 'null'
+        description: 'Pricing v2: Net price / kWh of the EMP tariff'
+      empKwhGrossPrice:
+        type:
+          - integer
+          - 'null'
+        description: 'Pricing v2: Gross price / kWh of the EMP tariff'
+      empMinuteNetPrice:
+        type:
+          - integer
+          - 'null'
+        description: 'Pricing v2: Net price / minute of the EMP tariff'
+      empMinuteGrossPrice:
+        type:
+          - integer
+          - 'null'
+        description: 'Pricing v2: Gross price / minute of the EMP tariff'
+      empSessionNetPrice:
+        type:
+          - integer
+          - 'null'
+        description: 'Pricing v2: Net price / session of the EMP tariff'
+      empSessionGrossPrice:
+        type:
+          - integer
+          - 'null'
+        description: 'Pricing v2: Gross price / session of the EMP tariff'
+      station:
+        $ref: '#/definitions/station-compact'
+    required:
+      - uuid
+      - stationUuid
+      - customerId
+      - startTime
+      - stopTime
+      - duration
+      - wattHour
+      - amount
+      - currency
+      - transactionType
+      - created
+    example:
+      uuid: 5a7de520-59ce-4668-b925-ee88d5312b62
+      customerId: 13096134
+      amount: -70085727
+      currency: EUR
+      transactionType: charge
+      created: '2020-04-20T15:52:58+03:00'
+      customerGroupId: 38774053
+      customerGroupName: deserunt
+      organizationId: 1401758
+      paymentType: Prepaid
+      startTime: '2020-04-20T13:52:57+03:00'
+      stopTime: '2020-04-20T15:52:58+03:00'
+      signedMeterValueBegin: >-
+        AP;0;3;AMMZ566VVHO23IDLJSWDPNE6F5DQ5QY32GAIJGYAAAABA232ISABC5GRF4AIAAEEAB7Y6AAJROAQAAAAAAABQGRDEMQZXIJAUKMBVIM4DAAAAAAAAAAAYAAAAALYAAAAA====;ZCZOVWEMRUOLCYI53LNLHXDHZD4VIO3FJ5YVTSIT7GPVNKTM2YN6MPRCZSWDI2HRTS5O6MHNNCWUA===;
+      signedMeterValueEnd: >-
+        AP;1;3;AMMZ566VVHO23IDLJSWDPNE6F5DQ5QY32Q6OYYDCNQAAAFACRC2I4ADGAIJGYAAAAAQ4UDIUABQ7ORF4AIAAEEAB7Y6ADMCYAQAAAAAAABQGRDEMQZXIJAUKMBVIM4DAAAAAAAAAAAYAAAAAMAAAAAA====;HN5NMNDVWKSTU7Y3I3IPKBKN3D7I52BOR3NPR2RSPRFIWEJPDGD5LYY4XG7CPZJN6ZV5BNVZTXMZE===;
+      duration: 121
+      wattHour: 1000
+      stationUuid: 2088eb3b-04b7-4b7d-89b3-37721a3ee974
+      rfid: 0420A14A
+      empShare: 70085727
+      evseId: 56197546
+      plugType: AC
+      cdrId: 22039210
+      operatorPrice: 30670123
+      operatorCurrency: EUR
+      operatorId: 78655333
+      freeCharging: 'No'
+      fullEvseId: FI*001*E56197546
+      cpoOperatorId: FI*001
+      meterStart: 1000
+      meterStop: 2000
+      eichrechtType: SAFE
+      empKwhNetPrice: null
+      empKwhGrossPrice: null
+      empMinuteNetPrice: null
+      empMinuteGrossPrice: null
+      empSessionNetPrice: 56520748
+      empSessionGrossPrice: 70085727
+      station:
+        identity: FI_ChARGE_ME
+        name: Hi charger
+        location:
+          id: 56197546
+          address: Hi Street 2
+          city: Helsinki
+          coordinates:
+            lat: 60.66868
+            lng: 12.54339
+        locationType: Public
+  charge:
+    title: CpoCharge - Response
+    type: object
+    properties:
+      evseId:
+        type: integer
+      fullEvseId:
+        type: string
+      locationId:
+        type: integer
+      startTime:
+        type: string
+      stopTime:
+        type: string
+      signedMeterValueBegin:
+        type: 'null'
+      signedMeterValueEnd:
+        type: 'null'
+      meterStart:
+        type: integer
+      meterStop:
+        type: integer
+      wattHour:
+        type: integer
+      duration:
+        type: integer
+      connectorId:
+        type: integer
+      socketType:
+        type: string
+      method:
+        type: string
+      amount:
+        type: integer
+      currency:
+        type: string
+      evcoId:
+        type: string
+      empSellerId:
+        type: string
+      roamingEmpId:
+        type: string
+      created:
+        type: string
+      rfid:
+        type: string
+      organizationId:
+        type: integer
+      cdrId:
+        type: integer
+      freeCharging:
+        type: string
+      UUID:
+        type: string
+      station:
+        type: object
+        properties:
+          identity:
+            type: string
+          name:
+            type: string
+          location:
+            type: object
+            properties:
+              id:
+                type: integer
+              address:
+                type: string
+              city:
+                type: string
+              coordinates:
+                type: object
+                properties:
+                  lat:
+                    type: number
+                  lng:
+                    type: number
+              locationType:
+                type: string
+    example:
+      evseId: 4482
+      fullEvseId: SE*EDR*E4482
+      locationId: 4421
+      startTime: '1970-01-01T02:00:18+02:00'
+      stopTime: '2018-04-08T18:14:01+03:00'
+      signedMeterValueBegin: null
+      signedMeterValueEnd: null
+      meterStart: 0
+      meterStop: 2863300
+      wattHour: 2863300
+      duration: 16777215
+      connectorId: 1
+      socketType: AC
+      method: rfid
+      amount: 0
+      currency: ''
+      evcoId: ''
+      empSellerId: ''
+      roamingEmpId: ''
+      created: '2018-04-08T18:14:01+03:00'
+      rfid: AABB22CCDD
+      organizationId: 999
+      cdrId: 281894
+      freeCharging: 'no'
+      UUID: 85d7427e-3b3f-11e8-8409-6c3be5a9c168
+      station:
+        identity: virtaglobal
+        name: Virta charger
+        location:
+          id: 10500
+          address: Energiakuja 3
+          city: Helsinki
+          coordinates:
+            lat: 60.31139
+            lng: 18.17375
+          locationType: Public
+  transactionReserve:
+    title: Transaction - Reserve
+    type: object
+    properties:
+      uuid:
+        type: string
+        format: uuid
+        description: The UUID to identidy the charge
+      stationUuid:
+        type: string
+        format: uuid
+        description: The UUID to identify the station
+      customerId:
+        type: integer
+        description: The ID to identify the customer
+        minimum: 0
+      amount:
+        type: integer
+        description: Reservation price in cents
+      currency:
+        type: string
+        minLength: 3
+        maxLength: 3
+        description: Charge price's currency
+      transactionType:
+        type: string
+        enum:
+          - reserve
+      created:
+        type: string
+        description: Time when the reservation was made
+        format: date-time
+    required:
+      - uuid
+      - stationUuid
+      - customerId
+      - amount
+      - currency
+      - transactionType
+      - created
+    example:
+      uuid: 7d84d6dc-3b7e-47e3-9574-9d3d9e68b38b
+      stationUuid: 4f33ee0c-ed46-48c9-a78f-2090e0067368
+      customerId: 88679747
+      amount: -50
+      currency: EUR
+      transactionType: reserve
+      created: '2044-09-11T04:25:33.67+03:00'
+  station-compact:
+    title: Station - Compact
+    type: object
+    properties:
+      identity:
+        type: string
+        description: Chargebox Identity of the charging station
+      name:
+        type: string
+        description: Name of the charging station
+      location:
+        type: object
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Id of the charging station
+            address:
+              type: string
+              description: Street and housenumber of the charging station
+            city:
+              type: string
+              description: City of the charging station
+            coordinates:
+              type:
+                - array
+                - 'null'
+              items:
+                type: object
+                properties:
+                  lat:
+                    type: number
+                  lng:
+                    type: number
+                required:
+                  - lat
+                  - lng
+          required:
+            - id
+            - address
+            - city
+            - coordinates
+      locationType:
+        type: string
+        description: 'Location description of the charging station: Public, Home or Office'
+    required:
+      - identity
+      - name
+      - location
+    example:
+      identity: FI_CHARGE_ME
+      name: Supercharger Helsinki
+      location:
+        id: 999
+        address: Telakkakatu 2
+        city: Helsinki
+        coordinates:
+          lat: 60.156994
+          lng: 24.933734
+        locationType: Public
+  transactionOthers:
+    title: Transaction - Others
+    type: object
+    properties:
+      uuid:
+        type: string
+        format: uuid
+        description: The UUID to identidy the charge
+      customerId:
+        type: integer
+        description: The ID to identify the customer
+        minimum: 0
+      amount:
+        type: integer
+        description: Balance change amount in cents. Refund amount is always negative
+      currency:
+        type: string
+        minLength: 3
+        maxLength: 3
+        description: The currency of the balance change amount
+      transactionType:
+        type: string
+        enum:
+          - refund
+          - monthly
+          - rfid_order
+          - transition
+          - seller_collection
+        description: The type of transaction that changes the customers' balance.
+      created:
+        type: string
+        format: date-time
+        description: The time when the balance event was made
+      customerGoupId:
+        type: integer
+        description: The Id the of the group the customer belongs to
+      customerGroupName:
+        type: string
+        description: The name of the group the customer belongs to
+      organizationId:
+        type: integer
+        description: The organization ID of the EMP of the customer
+      paymentType:
+        type: string
+        enum:
+          - Prepaid
+          - Postpaid
+          - Postpaid (by Card)
+        description: The payment type of the customer
+    required:
+      - uuid
+      - customerId
+      - amount
+      - currency
+      - transactionType
+      - created
+      - organizationId
+      - paymentType
+    example:
+      uuid: 898b90f7-f2c1-4677-ba77-ae2fb829c2c0
+      customerId: 7050943
+      amount: 37786736
+      currency: EUR
+      transactionType: refund
+      created: '2941-04-24T22:06:40+03:00'
+      customerGoupId: 6283571
+      customerGroupName: mygroupname
+      organizationId: 5617758
+      paymentType: Postpaid
+  transactionLoad:
+    title: Transaction - Load
+    type: object
+    properties:
+      uuid:
+        type: string
+        format: uuid
+        description: The UUID to identidy the charge
+      customerId:
+        type: integer
+        description: The ID to identify the customer
+        minimum: 0
+      amount:
+        type: integer
+        description: Balance change amount in cents. Refund amount is always negative
+      currency:
+        type: string
+        minLength: 3
+        maxLength: 3
+        description: The currency of the balance change amount
+      transactionType:
+        type: string
+        enum:
+          - refund
+          - monthly
+          - load
+          - rfid_order
+          - transition
+          - seller_collection
+        description: The type of transaction that changes the customers' balance.
+      created:
+        type: string
+        format: date-time
+        description: The time when the balance event was made
+      customerGoupId:
+        type: integer
+        description: The Id the of the group the customer belongs to
+      customerGroupName:
+        type: string
+        description: The name of the group the customer belongs to
+      organizationId:
+        type: integer
+        description: The organization ID of the EMP of the customer
+      paymentType:
+        type: string
+        enum:
+          - Prepaid
+          - Postpaid
+          - Postpaid (by Card)
+        description: The payment type of the customer
+      filingCode:
+        type: integer
+        description: The reference to the transaction provided by the payment gateway
+    required:
+      - uuid
+      - customerId
+      - amount
+      - currency
+      - transactionType
+      - created
+      - organizationId
+      - paymentType
